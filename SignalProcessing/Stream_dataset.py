@@ -27,15 +27,23 @@ sequence = 'RECORD@2020-11-21_13.57.07'
 #sequence='RECORD@2020-11-21_11.54.31'
 print('BEWARE OF SEQUENCES!!!')
 root_folder=f'/home/christophe/RADIalP7/DATASET/{sequence}'
-df = pd.read_csv('/home/christophe/ComplexNet/STREAM/labels_CVPR.csv')
 
-# df_labels=pd.read_csv(f'/home/christophe/RADIalP7/SignalProcessing/stream_labels_{sequence}.csv')
-# print(df_labels.columns)
+#df_labels=pd.read_csv(f'/home/christophe/RADIalP7/SignalProcessing/stream_labels_{sequence}.csv')
+labels = pd.read_csv('/home/christophe/ComplexNet/STREAM/labels_CVPR.csv')
+records = np.unique(labels['dataset'])[:1]
 
-df_labels=df.loc[df['dataset'] == sequence]
+print(records)
+
+sys.exit()
+
+
+
+
+
+
+print(df_labels.columns)
 print('Number of BBOXES: ')
 print(df_labels.shape[0])
-
 
 if not os.path.exists(root_folder):
     print("Folder does not exist")
@@ -44,7 +52,7 @@ if not os.path.exists(root_folder):
 #save_folder=f'/media/christophe/backup/DATARADIAL/{sequence}'
 
 
-save_folder='/home/christophe/RADIalP7/STREAM2/'
+save_folder=f'/home/christophe/RADIalP7/STREAM/'
 
 # print('warning just for tests!!!')
 # save_folder=f'/home/christophe/RADIalP7/SMALL_DATASET/VIDEO/'
@@ -68,23 +76,22 @@ else:
     if SAVE_ADC or SAVE_IMG or SAVE_RANGE_FFT or SAVE_RD or SAVE_WINDOW or save_labels:
         sys.exit('Warning sequence seems to have been already computed')
 
-db = SyncReader(root_folder,tolerance=20000,silent=False)
+db = SyncReader(root_folder)
 
 print('elements found in sequence parsed: ',len(db))
 
 calib_path='/home/christophe/RADIalP7/SignalProcessing/CalibrationTable.npy'
 RSP = RadarSignalP7(path_calib_mat=calib_path,method='RD',device='cpu')
 print('will build: ',len(db),'range doppler plus raw data elements')
-db.print_info()
 
 hanning_window_range=RSP.get_window_hanning_range()
 if SAVE_WINDOW:
-    save_hanning=os.path.join(save_folder,'hanning_window_range.npy')
+    save_hanning=os.path.join(save_folder,f'hanning_window_range.npy')
     np.save(save_hanning,hanning_window_range)
 
 hanning_window_dopller=RSP.get_window_hanning_dopller()
 if SAVE_WINDOW:
-    save_hanning=os.path.join(save_folder,'hanning_window_dopller.npy')
+    save_hanning=os.path.join(save_folder,f'hanning_window_dopller.npy')
     np.save(save_hanning,hanning_window_dopller)
 
 
@@ -119,11 +126,13 @@ for i in range (len(db)):
     first_fftV2=RSP.get_first_fftV2(raw_adc)
     time_first_fft_v2.append(time.time()-first_fft_start_v2)
 
-    assert np.allclose(first_fft_map, first_fftV2), "FFT differ between first and second FFT"
+    assert np.allclose(first_fft_map, first_fftV2)==True, "FFT differ between first and second FFT"
+
+
 
     fft_by_matrix=RSP.build_fft_by_dot_product(raw_adc)
 
-    assert np.allclose(first_fft_map,fft_by_matrix), "DFT differ"
+    assert np.allclose(first_fft_map,fft_by_matrix)==True, "DFT differ"
     fft_torch_time=time.time()
     first_fft_torch=RSP.get_torch_first_fft(sample['radar_ch0']['data'],sample['radar_ch1']['data'],sample['radar_ch2']['data'],sample['radar_ch3']['data'])
     time_first_fft_torch.append(time.time()-fft_torch_time)
@@ -132,6 +141,8 @@ for i in range (len(db)):
 
     #
     matrix_dft=RSP.build_fft_matrix(raw_adc)
+
+
     save_fft_path=os.path.join(fft_folder,f'first_fft_{i}.npy')
     if SAVE_RANGE_FFT:
         np.save(save_fft_path,fft_by_matrix)
@@ -146,17 +157,14 @@ for i in range (len(db)):
 
     assert np.allclose(second_fft_torch,second_fft), "Doppler FFT differ"
 
-
     save_path2=os.path.join(fft2_folder,f'second_fft_{i}.npy')
     if SAVE_RD:
         np.save(save_path2,second_fft)
 
-    third_fft_range_dopller=RSP.run(sample['radar_ch0']['data'],sample['radar_ch1']['data'],sample['radar_ch2']['data'],sample['radar_ch3']['data'])
-    assert np.allclose(third_fft_range_dopller,second_fft)
     labels_per_sequence=df_labels[df_labels['index'] ==i]
-    
+    print('found ',labels_per_sequence.shape[0],' bboxes for index: ',i)
     if labels_per_sequence.shape[0]>0:
-        print('found ',labels_per_sequence.shape[0],' bboxes for index: ',i)
+
         if save_labels:
             
             save_path_labels=os.path.join(label_folder,f'labels_{i}.csv')
@@ -172,8 +180,8 @@ for i in range (len(db)):
     count+=1  
 
 print('Ratio of samples with no bboxes: ',(ratio_frame/count)*100,'%')
+sys.exit('exiting  before time benchmark')
 #assert len(time_second_fft)==count
-sys.exit('exiting before time benchmark')
 print('computing benchmarks....')
 
 # test only to be removed

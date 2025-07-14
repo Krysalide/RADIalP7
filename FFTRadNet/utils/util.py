@@ -5,6 +5,10 @@ from shapely.geometry import Polygon
 from shapely.ops import unary_union
 import polarTransform
 
+import concurrent.futures
+
+import scipy.ndimage
+
 # Camera parameters
 camera_matrix = np.array([[1.84541929e+03, 0.00000000e+00, 8.55802458e+02],
                  [0.00000000e+00 , 1.78869210e+03 , 6.07342667e+02],[0.,0.,1]])
@@ -133,6 +137,7 @@ def DisplayHMI(image, input,model_outputs,encoder):
     PowerSpectrum = np.log10(FFT)
     # rescale
     PowerSpectrum = (PowerSpectrum -PowerSpectrum.min())/(PowerSpectrum.max()-PowerSpectrum.min())*255
+    
     PowerSpectrum = cv2.cvtColor(PowerSpectrum.astype('uint8'),cv2.COLOR_GRAY2BGR)
 
     ## Image

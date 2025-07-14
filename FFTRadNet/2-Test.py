@@ -8,6 +8,7 @@ from dataset.dataset import RADIal
 from dataset.encoder import ra_encoder
 import cv2
 from utils.util import DisplayHMI
+import joblib
 
 def main(config, checkpoint_filename,difficult):
 
@@ -18,6 +19,7 @@ def main(config, checkpoint_filename,difficult):
     enc = ra_encoder(geometry = config['dataset']['geometry'], 
                         statistics = config['dataset']['statistics'],
                         regression_layer = 2)
+    #joblib.dump(filename='encoder_radial.joblib',value=enc)
     
     dataset = RADIal(root_dir = config['dataset']['root_dir'],
                         statistics= config['dataset']['statistics'],
@@ -60,11 +62,13 @@ def main(config, checkpoint_filename,difficult):
         
 
 if __name__=='__main__':
+    CONFIG_PATH = '/home/christophe/ComplexNet/STREAM/config_FFTRadNet_192_56.json'
+    CHECKPOINT_PATH = '/home/christophe/ComplexNet/STREAM/FFTRadNet_RA_192_56_epoch78_loss_172.8239_AP_0.9813.pth'
     # PARSE THE ARGS
     parser = argparse.ArgumentParser(description='FFTRadNet test')
-    parser.add_argument('-c', '--config', default='config.json',type=str,
+    parser.add_argument('-c', '--config', default=CONFIG_PATH,type=str,
                         help='Path to the config file (default: config.json)')
-    parser.add_argument('-r', '--checkpoint', default=None, type=str,
+    parser.add_argument('-r', '--checkpoint', default=CHECKPOINT_PATH, type=str,
                         help='Path to the .pth model checkpoint to resume training')
     parser.add_argument('--difficult', action='store_true')
     args = parser.parse_args()
