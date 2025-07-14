@@ -1,6 +1,6 @@
 
-import os
-#import cupy as cp
+
+#import cupy as cp 
 import numpy as np
 #import mkl_fft
 from scipy import signal
@@ -15,7 +15,7 @@ import math
 
 # has been simplified to avoid use of cupy 
 # and to avoid use of mkl_fft (difficult to install and useless for our purpose)
-# use conda data_make if no torch use
+# use conda data_make environment.
 '''
 
 class RadarSignalP7():
@@ -188,20 +188,15 @@ class RadarSignalP7():
         signal_windowed=np.multiply(complex_adc,self.range_fft_coef)
         N = signal_windowed.shape[0]
 
-        
         j, k = np.meshgrid(np.arange(N), np.arange(N), indexing='ij')
         
-
         dft_matrix = np.exp(-2j * np.pi * j * k / N) 
         
 
         return dft_matrix   
 
     
-
-         
-
-
+    
     def __build_radar_frame(self,adc0,adc1,adc2,adc3):
         frame0 = np.reshape(adc0[0::2] + 1j*adc0[1::2], (self.numSamplePerChirp,self.numRxPerChip, self.numChirps), order ='F').transpose((0,2,1))   
         frame1 = np.reshape(adc1[0::2] + 1j*adc1[1::2], (self.numSamplePerChirp,self.numRxPerChip, self.numChirps), order ='F').transpose((0,2,1))   
@@ -209,6 +204,7 @@ class RadarSignalP7():
         frame3 = np.reshape(adc3[0::2] + 1j*adc3[1::2], (self.numSamplePerChirp,self.numRxPerChip, self.numChirps), order ='F').transpose((0,2,1))   
         return np.concatenate([frame3,frame0,frame1,frame2],axis=2)
     
+
     def __get_PCL(self,RD_spectrums):
         # 1- Compute power spectrum
         power_spectrum = np.sum(np.abs(RD_spectrums),axis=2)
@@ -273,7 +269,7 @@ class RadarSignalP7():
         else:   
             
             if(self.lib=='CuPy'):
-                raise ImportError('CuPy is not supported in this version. Please use cpu instead.')
+                raise NotImplementedError('CuPy is not supported in this version. Please use cpu instead.')
                 MIMO_Spectrum = cp.array(MIMO_Spectrum)
                 # Multiply with Hamming window to reduce side lobes
                 MIMO_Spectrum = cp.multiply(MIMO_Spectrum,self.window).transpose()
@@ -305,6 +301,7 @@ class RadarSignalP7():
         doppler_bins = section_idx*self.numReducedDoppler+reduced_doppler_bins
 
         return doppler_bins
+    
     
     def get_raw_adc(self,adc0,adc1,adc2,adc3):
         # 1. Decode the input ADC stream to build radar complex frames

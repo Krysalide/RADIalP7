@@ -28,17 +28,11 @@ sequence = 'RECORD@2020-11-21_13.57.07'
 print('BEWARE OF SEQUENCES!!!')
 root_folder=f'/home/christophe/RADIalP7/DATASET/{sequence}'
 
-#df_labels=pd.read_csv(f'/home/christophe/RADIalP7/SignalProcessing/stream_labels_{sequence}.csv')
+df_labels=pd.read_csv(f'/home/christophe/RADIalP7/SignalProcessing/stream_labels_{sequence}.csv')
 labels = pd.read_csv('/home/christophe/ComplexNet/STREAM/labels_CVPR.csv')
 records = np.unique(labels['dataset'])[:1]
 
 print(records)
-
-sys.exit()
-
-
-
-
 
 
 print(df_labels.columns)

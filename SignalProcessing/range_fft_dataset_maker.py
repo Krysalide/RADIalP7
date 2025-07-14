@@ -7,8 +7,10 @@ import os
 from custom_signal_process  import RadarSignalP7
 import sys
 from DBReader.DBReader import SyncReader
-from joblib import dump, load
+
 # this script is used to create the dataset WITH FIRST FFT PLUS SECOND FFT
+# it has been used also to get bounding boxes (for streamlit app)
+# it also served to compute time benchmark to compare with neural network approach
 
 SAVE_ADC=False
 SAVE_RANGE_FFT=False
@@ -17,7 +19,7 @@ SAVE_WINDOW=False
 SAVE_IMG=False
 save_labels=False
 
-Benchmark_Time=False
+Benchmark_Time=True
 if Benchmark_Time:
     assert not SAVE_ADC and not SAVE_RANGE_FFT and not SAVE_RD and not SAVE_WINDOW, "data not saved while benchmarking"
 
@@ -172,8 +174,8 @@ for i in range (len(db)):
     count+=1  
 
 print('Ratio of samples with no bboxes: ',(ratio_frame/count)*100,'%')
-#assert len(time_second_fft)==count
-sys.exit('exiting before time benchmark')
+assert len(time_second_fft)==count
+
 print('computing benchmarks....')
 
 # test only to be removed
@@ -202,19 +204,19 @@ print('Mean time to compute second fft (doppler) using torch: ',mean_time_second
 
 
 #### UNCOMMENT IF YOU WANT TO SAVE BENCMARK
-# markdown_content = f"""# FFT Timing Comparison Report
+markdown_content = f"""# FFT Timing Comparison Report
 
-# This report includes the mean inference times (in seconds) for various FFT implementations and versions:
-# - **Number of samples to compute means**: `{count}`
-# - **Mean time to compute FFT (version 1 scipy)**: `{mean_time_v1:.6f}` seconds
-# - **Mean time to compute FFT (version 2 matrix DFT + product)**: `{mean_time_v2:.6f}` seconds  
-# - **Mean time to compute FFT using PyTorch (torch.fft)**: `{mean_time_torch:.6f}` seconds  
-# - **Mean time to compute second FFT (Doppler) scipy**: `{mean_time_second_fft:.6f}` seconds  
-# - **Mean time to compute second FFT (Doppler) using PyTorch**: `{mean_time_second_fft_torch:.6f}` seconds  
-# """
+This report includes the mean inference times (in seconds) for various FFT implementations and versions:
+- **Number of samples to compute means**: `{count}`
+- **Mean time to compute FFT (version 1 scipy)**: `{mean_time_v1:.6f}` seconds
+- **Mean time to compute FFT (version 2 matrix DFT + product)**: `{mean_time_v2:.6f}` seconds  
+- **Mean time to compute FFT using PyTorch (torch.fft)**: `{mean_time_torch:.6f}` seconds  
+- **Mean time to compute second FFT (Doppler) scipy**: `{mean_time_second_fft:.6f}` seconds  
+- **Mean time to compute second FFT (Doppler) using PyTorch**: `{mean_time_second_fft_torch:.6f}` seconds  
+"""
 
-# # Write to a Markdown file
-# with open("fft_versions_report.md", "w") as f:
+# Write to a Markdown file
+# with open("time_classical_report.md", "w") as f:
 #     f.write(markdown_content)
 
 
